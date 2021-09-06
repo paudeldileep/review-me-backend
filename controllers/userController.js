@@ -19,7 +19,7 @@ exports.userRegister=async(req,res)=>{
     try{
         const existingUser=await userModel.findOne({email})
         if(existingUser){
-            return res.status(400).json({errors:[{message:'User already registered with given email'}]})
+            return res.status(409).json({errors:[{message:'User already registered with given email'}]})
         }
 
         const newUser= new userModel(req.body);
@@ -39,11 +39,11 @@ exports.userRegister=async(req,res)=>{
         }
         jwt.sign(payload,process.env.JWT_SECRET_KEY,{expiresIn:'5 days'},(err,token)=>{
             if(err) throw err
-            res.json({token})
+           return res.json({token})
         })
 
     }catch(err){
         console.log(`register error: ${err.message}`);
-        res.status(500).json({errors:[{message:'Internal Server Error'}]})
+        return res.status(500).json({errors:[{message:'Internal Server Error'}]})
     }
 }

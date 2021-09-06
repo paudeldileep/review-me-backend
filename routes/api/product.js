@@ -13,7 +13,11 @@ const upload= require('../../middlewares/multer')
 //@access private
 router.post('/new',verifyUser,validation.newProduct_validation,upload.single('productImage'),productController.addNewProduct);
 
+//@route GET api/product/all
+//@desc Get all available product postings
+//@access public
 
+router.get('/all',productController.getAllPosts)
 
 
 
