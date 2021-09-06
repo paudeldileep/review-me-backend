@@ -13,3 +13,9 @@ exports.userRegister_validation = [
       min: 6,
     }),
   ]
+ 
+  exports.newProduct_validation=[
+    check("title","Product title is required").not().isEmpty().isString(),
+    check("description","Product Description is required").not().isEmpty().isString(),
+    check("productImage","Product Image is required").not().isEmpty()
+  ]
