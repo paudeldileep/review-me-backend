@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const ProductModel=require('./Product')
 
 const userSchema = new mongoose.Schema({
     firstname: {
@@ -24,6 +25,7 @@ const userSchema = new mongoose.Schema({
     photo: {
         type: String
     },
+    products:[{type:mongoose.ObjectId,ref:'product'}],
     created: {
         type: Date,
         default: Date.now

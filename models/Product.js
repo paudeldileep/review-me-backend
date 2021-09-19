@@ -1,5 +1,21 @@
 const mongoose = require("mongoose");
+const Schema=mongoose.Schema
+
 const UserModel = require("./User");
+
+const reviewSchema = new mongoose.Schema({
+  review: {
+    type: String,
+  },
+  reviewedBy: {
+    type: mongoose.ObjectId,
+    ref: 'user',
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
 const productSchema = new mongoose.Schema({
   title: {
@@ -15,9 +31,12 @@ const productSchema = new mongoose.Schema({
   },
   postedBy: {
     type: mongoose.ObjectId,
-    ref: UserModel,
+    ref: 'user',
     required: true,
   },
+  likes: [{ type: mongoose.ObjectId, ref: 'user' }],
+  hearts: [{ type: mongoose.ObjectId, ref: 'user' }],
+  reviews: [reviewSchema],
   posted: {
     type: Date,
     default: Date.now,
@@ -25,4 +44,5 @@ const productSchema = new mongoose.Schema({
   updated: Date,
 });
 
-module.exports = ProductModel = mongoose.model("product", productSchema);
+module.exports =ProductModel = mongoose.model("product", productSchema);
+//exports.CommentModel = mongoose.model("comment", commentSchema);

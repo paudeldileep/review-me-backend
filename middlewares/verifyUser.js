@@ -6,10 +6,10 @@ module.exports = function(req,res,next){
     //Get token from header
     const token = req.header('x-auth-token');
 
-    //console.log(token)
+    //console.log('verifyUser'+token)
     //Check if not token
     if(!token){
-        return res.status(401).json({errors:[{message:'Authorization failed!!'}]});
+        return res.status(401).json({error:'Authorization failed!!'});
     }
 
     //verify token and assign decoded data(here currently email address) to req.user
@@ -20,6 +20,6 @@ module.exports = function(req,res,next){
         next();
     }catch(err){
         console.error(err.message);
-        return res.status(401).json({errors:[{message: 'Invalid token,Please Login Again'}]});
+        return res.status(401).json({error:'Invalid token,Please Login Again'});
     }
 };
