@@ -19,3 +19,9 @@ exports.userRegister_validation = [
     check("description","Product Description is required").not().isEmpty().isString(),
     check("productImage","Product Image is required").not().isEmpty()
   ]
+
+  exports.productUpdate_validation=[
+    check("title","Product title is required").not().isEmpty().isString(),
+    check("description","Product Description is required").not().isEmpty().isString(),
+   
+  ]

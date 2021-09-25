@@ -11,175 +11,222 @@ exports.addNewProduct = async (req, res) => {
     title,
     description,
     productImage: url + "/uploads/productImages/" + req.file.filename,
-    postedBy:user.id
+    postedBy: user.id,
   });
 
-  try{
-      await newProduct.save()
-      
-
-  }catch(err){
-      console.log(err)
-      return res.status(500).json({errors:'Internal Server Error'})
+  try {
+    await newProduct.save();
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: "Internal Server Error" });
   }
 
-  return res.status(201).json('Product posted successfully');
-
+  return res.status(201).json("Product posted successfully");
 };
 
-
 //Get all products posting
-exports.getAllPosts=async(req,res)=>{
-
-  try{
-    const allPosts=await productModel.find({}).sort({posted: -1}).populate({path:'postedBy',select:'firstname _id'}).exec()
+exports.getAllPosts = async (req, res) => {
+  try {
+    const allPosts = await productModel
+      .find({})
+      .sort({ posted: -1 })
+      .populate({ path: "postedBy", select: "firstname _id" })
+      .exec();
 
     if (allPosts.length === 0) {
-     return res.status(400).json({errors:"No Posts Found"});
+      return res.status(400).json({ errors: "No Posts Found" });
     }
 
-    return res.status(200).send(allPosts)
-    
-
-  }
-  catch(err){
+    return res.status(200).send(allPosts);
+  } catch (err) {
     console.log(err);
-    return res.status(500).json({errors:"Something went Wrong"});
+    return res.status(500).json({ errors: "Something went Wrong" });
   }
-
-}
+};
 
 //Get specific user products posting
-exports.getOwnPosts=async(req,res)=>{
-
-  const{id}=req.user
-  try{
-    const ownPosts=await productModel.find({postedBy:id}).sort({posted: -1}).populate({path:'postedBy',select:'firstname _id'}).exec()
+exports.getOwnPosts = async (req, res) => {
+  const { id } = req.user;
+  try {
+    const ownPosts = await productModel
+      .find({ postedBy: id })
+      .sort({ posted: -1 })
+      .populate({ path: "postedBy", select: "firstname _id" })
+      .exec();
 
     if (ownPosts.length === 0) {
-     return res.status(400).json({errors: "No Posts Found"});
+      return res.status(400).json({ errors: "No Posts Found" });
     }
 
-    return res.status(200).send(ownPosts)
-    
-
-  }
-  catch(err){
+    return res.status(200).send(ownPosts);
+  } catch (err) {
     console.log(err);
-    return res.status(500).json({errors:"Something went Wrong"});
+    return res.status(500).json({ errors: "Something went Wrong" });
   }
-
-}
+};
 
 //Get specific user products posting
-exports.getPostsByUserId=async(req,res)=>{
+exports.getPostsByUserId = async (req, res) => {
+  const userId = req.params.userId;
 
-  const userId=req.params.userId
-
-  try{
-    const allPosts=await productModel.find({postedBy:userId}).sort({posted: -1}).populate({path:'postedBy',select:'firstname _id'}).exec()
+  try {
+    const allPosts = await productModel
+      .find({ postedBy: userId })
+      .sort({ posted: -1 })
+      .populate({ path: "postedBy", select: "firstname _id" })
+      .exec();
 
     if (allPosts.length === 0) {
-     return res.status(400).json({errors: "No Posts Found"});
+      return res.status(400).json({ errors: "No Posts Found" });
     }
 
-    return res.status(200).send(allPosts)
-    
-
-  }
-  catch(err){
+    return res.status(200).send(allPosts);
+  } catch (err) {
     console.log(err);
-    return res.status(500).json({errors:"Something went Wrong"});
+    return res.status(500).json({ errors: "Something went Wrong" });
   }
-
-}
-
-
+};
 
 //Get specific user products posting
-exports.getSinglePost=async(req,res)=>{
-
-  const productId=req.params.productId
-  try{
-    const post=await productModel.findById(productId).populate({path:'postedBy',select:'firstname _id'}).populate('reviews').exec()
+exports.getSinglePost = async (req, res) => {
+  const productId = req.params.productId;
+  try {
+    const post = await productModel
+      .findById(productId)
+      .populate({ path: "postedBy", select: "firstname _id" })
+      .populate("reviews")
+      .exec();
 
     if (!post) {
-     return res.status(400).json({errors: "Post Not Found"});
+      return res.status(400).json({ errors: "Post Not Found" });
     }
 
-    return res.status(200).send(post)
-    
-
-  }
-  catch(err){
+    return res.status(200).send(post);
+  } catch (err) {
     console.log(err);
-    return res.status(500).json({errors:"Something went Wrong"});
+    return res.status(500).json({ errors: "Something went Wrong" });
   }
-
-}
+};
 
 //delete a product
-exports.deleteSinglePost=async(req,res)=>{
-  const {id}=req.user;
-  const productId=req.params.productId
-  try{
-
-    const product=await productModel.findById(productId)
+exports.deleteSinglePost = async (req, res) => {
+  const { id } = req.user;
+  const productId = req.params.productId;
+  try {
+    const product = await productModel.findById(productId);
     //console.log(product.postedBy.toString())
-    if(product){
-        if(product.postedBy.toString() === id){
-          await product.deleteOne()
-          return res.status(200).json("The product has been deleted")
-        }
-        else{
-          return res.status(403).json({errors:"You can only delete your post"});
-        }
+    if (product) {
+      if (product.postedBy.toString() === id) {
+        await product.deleteOne();
+        return res.status(200).json("The product has been deleted");
+      } else {
+        return res
+          .status(403)
+          .json({ errors: "You can only delete your post" });
+      }
+    } else {
+      return res.status(400).json({ errors: "Specified Product Not Found" });
     }
-    else{
-      return res.status(400).json({errors:"Specified Product Not Found"});
-    }
-
-  }catch(err){
+  } catch (err) {
     console.log(err);
-    return res.status(500).json({errors:"Something went Wrong"});
+    return res.status(500).json({ errors: "Something went Wrong" });
   }
-}
+};
+
+//update a product
+exports.updateSinglePost = async (req, res) => {
+  const { id } = req.user;
+  const productId = req.params.productId;
+
+
+  const url = req.protocol + "://" + req.get("host");
+
+  const { title, description } = req.body;
+
+  let newProduct ={
+    title,
+    description,
+  }
+
+  if(req.file){
+    newProduct.productImage=url + "/uploads/productImages/" + req.file.filename
+  }
+
+  try {
+    const product = await productModel.findById(productId);
+    //console.log(product.postedBy.toString())
+    if (product) {
+      if (product.postedBy.toString() === id) {
+        await product.updateOne({ $set: newProduct })
+        return res.status(200).json("The product has been updated");
+      } else {
+        return res
+          .status(403)
+          .json({ errors: "You can only edit your post" });
+      }
+    } else {
+      return res.status(400).json({ errors: "Specified Product Not Found" });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: "Something went Wrong" });
+  }
+};
 
 //post a comment
-exports.postReview=async(req,res)=>{
-  const{id}=req.user
-  const productId=req.params.productId
-  const {review}=req.body
+exports.postReview = async (req, res) => {
+  const { id } = req.user;
+  const productId = req.params.productId;
+  const { review } = req.body;
 
-  const newReview={review,revieweddBy:id}
+  const newReview = { review, reviewedBy: id };
 
-  try{
-    const product=await productModel.findById(productId);
-    
-    if(product){
+  try {
+    const product = await productModel.findById(productId);
+
+    if (product) {
       // nawait product.comments.push(comment);
       await product.updateOne({ $push: { reviews: newReview } });
-      return res.status(200).json("Review Posted Successfully")
+      return res.status(200).json("Review Posted Successfully");
+    } else {
+      return res.status(400).json({ errors: "Specified Product Not Found" });
     }
-    else{
-      return res.status(400).json({errors:"Specified Product Not Found"});
-    }
-
-  }catch(err){
+  } catch (err) {
     console.log(err);
-    return res.status(500).json({errors:"Something went Wrong"});
+    return res.status(500).json({ errors: "Something went Wrong" });
   }
-}
+};
 
- 
+//get all reviews of a product
+
+exports.getReviews = async (req, res) => {
+  const productId = req.params.productId;
+
+  try {
+    const reviews = await productModel
+      .findById(productId)
+      .select("reviews")
+      .populate("reviews")
+      .populate({ path: "reviews.reviewedBy", select: "firstname lastname" })
+      .exec();
+    if (reviews) {
+      return res.status(200).json(reviews);
+    }
+    return res.status(400).json({ errors: "No Reviews Yet.." });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: "Something went Wrong" });
+  }
+};
+
 // a like/dislike product
-exports.postLike=async(req,res)=>{
-  const {id}=req.user
-  const productId=req.params.productId
-  
-  try{
-    const product=await productModel.findById(productId);
-    
+exports.postLike = async (req, res) => {
+  const { id } = req.user;
+  const productId = req.params.productId;
+
+  try {
+    const product = await productModel.findById(productId);
+
     if (!product.likes.includes(id)) {
       await product.updateOne({ $push: { likes: id } });
       res.status(200).json("The product has been liked");
@@ -187,22 +234,20 @@ exports.postLike=async(req,res)=>{
       await product.updateOne({ $pull: { likes: id } });
       res.status(200).json("The product has been disliked");
     }
-
-  }catch(err){
+  } catch (err) {
     console.log(err);
-    return res.status(500).json({errors:"Something went Wrong"});
+    return res.status(500).json({ errors: "Something went Wrong" });
   }
-}
+};
 
- 
 // a love/don't love product
-exports.postHeart=async(req,res)=>{
-  const {id}=req.user
-  const productId=req.params.productId
-  
-  try{
-    const product=await productModel.findById(productId);
-    
+exports.postHeart = async (req, res) => {
+  const { id } = req.user;
+  const productId = req.params.productId;
+
+  try {
+    const product = await productModel.findById(productId);
+
     if (!product.hearts.includes(id)) {
       await product.updateOne({ $push: { hearts: id } });
       res.status(200).json("The product has been loved");
@@ -210,9 +255,8 @@ exports.postHeart=async(req,res)=>{
       await product.updateOne({ $pull: { hearts: id } });
       res.status(200).json("The product has been dis-loved");
     }
-
-  }catch(err){
+  } catch (err) {
     console.log(err);
-    return res.status(500).json({errors:"Something went Wrong"});
+    return res.status(500).json({ errors: "Something went Wrong" });
   }
-}
+};

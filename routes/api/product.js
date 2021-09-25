@@ -45,11 +45,23 @@ router.get('/:productId',verifyUser,productController.getSinglePost)
 
 router.delete('/:productId',verifyUser,productController.deleteSinglePost)
 
+//@route PUT api/product/productId
+//@desc update a single product
+//@access private
+
+router.put('/:productId',verifyUser,validation.productUpdate_validation,upload.single('productImage'),productController.updateSinglePost)
+
 //@route POST api/product/productId/review
-//@desc post a comment
+//@desc post a review
 //@access private
 
 router.post('/:productId/review',verifyUser,productController.postReview)
+
+//@route GET api/product/productId/reviews
+//@desc get all reviews of a product
+//@access private
+
+router.get('/:productId/reviews',verifyUser,productController.getReviews)
 
 
 //@route POST api/product/like/productId
