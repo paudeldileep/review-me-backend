@@ -3,6 +3,7 @@ const router=express.Router();
 const validation= require('../../middlewares/validation')
 const productController=require('../../controllers/productController')
 const verifyUser = require('../../middlewares/verifyUser')
+const verifyAdmin = require('../../middlewares/verifyAdmin')
 const upload= require('../../middlewares/multer')
 
 //const productController=
@@ -75,6 +76,20 @@ router.post('/:productId/like',verifyUser,productController.postLike)
 //@access private
 
 router.post('/:productId/heart',verifyUser,productController.postHeart)
+
+//for plotting
+//1.monthly products count
+
+router.get('/plot/monthly_pc',verifyAdmin,productController.getMonthlyProductCount)
+
+//2. products count of current month
+
+router.get('/count/cm_pc',verifyAdmin,productController.getCMProductsCount)
+
+
+
+
+
 
 
 module.exports=router

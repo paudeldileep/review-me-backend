@@ -2,7 +2,7 @@ const bcrypt= require('bcryptjs')
 const jwt=require('jsonwebtoken')
 const userModel=require('../models/User');
 const {validationResult} = require('express-validator')
-const {JsonWebTokenError} = require('jsonwebtoken')
+//const {JsonWebTokenError} = require('jsonwebtoken')
 require('dotenv').config();
 
 
@@ -103,7 +103,7 @@ exports.userLogin=async(req,res)=>{
 
     }
 
-    return res.status(400).json({error:{message:'Invalid Login Credentials'}})
+    return res.status(400).json({errors:'Invalid Login Credentials'})
     }catch(err){
         console.log(`login error: ${err}`)
         return res.status(500).json({errors:'Something went wrong!'})

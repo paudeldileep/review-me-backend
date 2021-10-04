@@ -25,3 +25,11 @@ exports.userRegister_validation = [
     check("description","Product Description is required").not().isEmpty().isString(),
    
   ]
+
+  exports.adminRegister_validation = [
+    check("name", "Name is required").not().isEmpty(),
+    check("email", "Valid email is required").not().isEmpty().isEmail(),
+    check("password", "Password must be 6 or more characters").isLength({
+      min: 6,
+    }),
+  ]

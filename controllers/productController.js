@@ -138,18 +138,18 @@ exports.updateSinglePost = async (req, res) => {
   const { id } = req.user;
   const productId = req.params.productId;
 
-
   const url = req.protocol + "://" + req.get("host");
 
   const { title, description } = req.body;
 
-  let newProduct ={
+  let newProduct = {
     title,
     description,
-  }
+  };
 
-  if(req.file){
-    newProduct.productImage=url + "/uploads/productImages/" + req.file.filename
+  if (req.file) {
+    newProduct.productImage =
+      url + "/uploads/productImages/" + req.file.filename;
   }
 
   try {
@@ -157,12 +157,10 @@ exports.updateSinglePost = async (req, res) => {
     //console.log(product.postedBy.toString())
     if (product) {
       if (product.postedBy.toString() === id) {
-        await product.updateOne({ $set: newProduct })
+        await product.updateOne({ $set: newProduct });
         return res.status(200).json("The product has been updated");
       } else {
-        return res
-          .status(403)
-          .json({ errors: "You can only edit your post" });
+        return res.status(403).json({ errors: "You can only edit your post" });
       }
     } else {
       return res.status(400).json({ errors: "Specified Product Not Found" });
@@ -258,5 +256,112 @@ exports.postHeart = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).json({ errors: "Something went Wrong" });
+  }
+};
+
+//get count of monthly products posted
+
+exports.getMonthlyProductCount = async (req, res) => {
+  try {
+    const monthlyPC = await productModel
+      .aggregate([
+        {
+          $group: { _id: { $month: "$posted" }, totalProducts: { $sum: 1 } },
+        },
+        { $project: { xAxis: "$_id", yAxis: "$totalProducts" } },
+      ])
+      .exec();
+
+    if (monthlyPC) {
+      return res.status(200).json(monthlyPC);
+    }
+
+    return res.status(400).json({ errors: [{ msg: "No Products Found.." }] });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+//get current months products
+
+exports.getCMProductsCount = async (req, res) => {
+  const date = new Date();
+  const y = date.getFullYear();
+  const m = date.getMonth();
+  const firstDay = new Date(y, m, 1);
+  const lastDay = new Date(y, m + 1, 0);
+
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+
+  const tomorrow = new Date();
+  tomorrow.setUTCHours(0, 0, 0, 0);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const week = new Date();
+  week.setUTCHours(0, 0, 0, 0);
+  week.setDate(week.getDate() - 6);
+
+  try {
+    // const cmProductsCount=await productModel.aggregate([
+    //   {
+    //     $match:{posted:{$gte:firstDay, $lt:lastDay}}
+    //   },
+    //   {
+    //     $group:{_id:{$month:"$posted"},totalProducts:{$sum:1}}
+    //   }
+    // ])
+
+    const cmProducts = await productModel.aggregate([
+      {
+        $facet: {
+          month: [
+            {
+              $match: { posted: { $gte: firstDay, $lt: lastDay } },
+            },
+            {
+              $group: {
+                _id: { $month: "$posted" },
+                totalProducts: { $sum: 1 },
+              },
+            },
+          ],
+          today:[
+            {
+              $match: { posted: { $gte: today, $lt: tomorrow } },
+            },
+            {
+              $group: {
+                _id: "today",
+                totalProducts: { $sum: 1 },
+              },
+            },
+          ],
+          week:[
+            {
+              $match: { posted: { $gte: week, $lt: today } },
+            },
+            {
+              $group: {
+                _id:"week",
+                totalProducts: { $sum: 1 },
+              },
+            },
+          ]
+        },
+      },
+    ]);
+
+    if (cmProducts) {
+
+      const cmProductsCount={
+        month:cmProducts[0].month[0],
+        today:cmProducts[0].today[0],
+        week:cmProducts[0].week[0],
+      }
+      return res.status(200).json(cmProductsCount);
+    }
+  } catch (err) {
+    console.log(err);
   }
 };
