@@ -41,6 +41,14 @@ const productSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isApproved:{
+    type:Boolean,
+    default:false
+  },
+  isFeatured:{
+    type:Boolean,
+    default:false
+  },
   updated: Date,
 });
 

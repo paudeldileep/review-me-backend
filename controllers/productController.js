@@ -24,17 +24,37 @@ exports.addNewProduct = async (req, res) => {
   return res.status(201).json("Product posted successfully");
 };
 
-//Get all products posting
+//Get all approved products posting 
 exports.getAllPosts = async (req, res) => {
   try {
     const allPosts = await productModel
-      .find({})
+      .find({isApproved:true})
       .sort({ posted: -1 })
       .populate({ path: "postedBy", select: "firstname _id" })
       .exec();
 
     if (allPosts.length === 0) {
       return res.status(400).json({ errors: "No Posts Found" });
+    }
+
+    return res.status(200).send(allPosts);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: "Something went Wrong" });
+  }
+};
+
+//Get all products posting pending for approval
+exports.getAllPendingPosts = async (req, res) => {
+  try {
+    const allPosts = await productModel
+      .find({isApproved:false})
+      .sort({ posted: -1 })
+      .populate({ path: "postedBy", select: "firstname _id" })
+      .exec();
+
+    if (allPosts.length === 0) {
+      return res.status(400).json({ errors: "No Posts Found for Approval" });
     }
 
     return res.status(200).send(allPosts);
@@ -145,6 +165,7 @@ exports.updateSinglePost = async (req, res) => {
   let newProduct = {
     title,
     description,
+    updated:Date.now()
   };
 
   if (req.file) {
@@ -265,10 +286,27 @@ exports.getMonthlyProductCount = async (req, res) => {
   try {
     const monthlyPC = await productModel
       .aggregate([
+        // {
+        //   $group: { _id: { $month: "$posted"}, totalProducts: { $sum: 1 } },
+        // },
+        // { $project: { xAxis:"$_id", year:{$year: "$posted"}, yAxis: "$totalProducts" } },
         {
-          $group: { _id: { $month: "$posted" }, totalProducts: { $sum: 1 } },
+          $group: {
+            _id: {
+              year: {$year:'$posted'},
+              month: {$month:'$posted'},
+
+            },
+            totalProducts: {
+              $sum: 1
+            }
+          }
         },
-        { $project: { xAxis: "$_id", yAxis: "$totalProducts" } },
+        {
+          $project: {
+            totalProducts:'$totalProducts'
+          }
+        }
       ])
       .exec();
 

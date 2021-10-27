@@ -116,7 +116,7 @@ exports.userLogin=async(req,res)=>{
 exports.getAllUsers=async(req,res)=>{
 
     try{
-        const users=await userModel.find({}).select('firstname lastname photo products')
+        const users=await userModel.find({}).select('-password')
         if(users){
             return res.status(200).json(users)
         }
@@ -129,14 +129,14 @@ exports.getAllUsers=async(req,res)=>{
 }
 
 
-//get all users
+//get a user profile based on userId
 
 exports.getUserProfile=async(req,res)=>{
 
     const userId=req.params.userId;
 
     try{
-        const userProfile=await userModel.findById(userId).select('firstname lastname photo email products').exec()
+        const userProfile=await userModel.findById(userId).select('-password').exec()
         if(userProfile){
             return res.status(200).json(userProfile)
         }
