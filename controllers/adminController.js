@@ -118,22 +118,31 @@ exports.adminInfo = async (req, res) => {
 
 exports.totalCounts = async (req, res) => {
   try {
-
     //total products count
     const totalProductsCount = await productModel.countDocuments({});
 
+    //total featured products count
+    const totalFeaturedCount = await productModel.countDocuments({
+      isFeatured: true,
+    });
+
     //approved products count
-    const approvedProductsCount = await productModel.countDocuments({isApproved:true});
+    const approvedProductsCount = await productModel.countDocuments({
+      isApproved: true,
+    });
 
     //approvel pending products count
-    const pendingProductsCount = await productModel.countDocuments({isApproved:false});
+    const pendingProductsCount = await productModel.countDocuments({
+      isApproved: false,
+    });
 
     const usersCount = await userModel.countDocuments({});
 
     const counts = {
       totalProducts: totalProductsCount,
-      approvedProducts:approvedProductsCount,
-      pendingProducts:pendingProductsCount,
+      featuredProducts: totalFeaturedCount,
+      approvedProducts: approvedProductsCount,
+      pendingProducts: pendingProductsCount,
       totalUsers: usersCount,
     };
     res.status(200).json(counts);
@@ -142,34 +151,39 @@ exports.totalCounts = async (req, res) => {
   }
 };
 
-//top commented products (two)
+//top commented products (three)
 
 exports.getTopProducts = async (req, res) => {
   try {
-
-    const topProducts= await productModel.aggregate([
-
+    const topProducts = await productModel.aggregate([
       { $unwind: "$reviews" },
       { $sortByCount: "$_id" },
-      {$limit:2}
-      
-     
-    ])
+      { $limit: 3 },
+    ]);
 
-    let result=[];
-   await Promise.all (topProducts.map( async (r)=>{
-      const product=await productModel.findById(r._id).select('title productImage').exec();
-     // console.log(product);
-      // console.log(r.count);
-      //const data={...product,count:r.count}
+    let result = [];
+    await Promise.all(
+      topProducts.map(async (r) => {
+        const product = await productModel
+          .findById(r._id)
+          .select("title productImage")
+          .exec();
+        // console.log(product);
+        // console.log(r.count);
+        //const data={...product,count:r.count}
 
-      result.push({_id:product._id,title:product.title,image:product.productImage,count:r.count});
-
-    }))
+        result.push({
+          _id: product._id,
+          title: product.title,
+          image: product.productImage,
+          count: r.count,
+        });
+      })
+    );
 
     //const topProducts = await productModel.find({}).count({})
     // const data= await productModel.populate(topProducts,{path:'postedBy',select:  {_id: 1, firstname: 1}})
-    result.sort((a,b) => (a.count > b.count) ? -1 : ((b.count > a.count) ? 1 : 0))
+    result.sort((a, b) => (a.count > b.count ? -1 : b.count > a.count ? 1 : 0));
     //console.log(data)
     res.status(200).json(result);
   } catch (err) {
@@ -181,27 +195,33 @@ exports.getTopProducts = async (req, res) => {
 
 exports.getUsersOverview = async (req, res) => {
   try {
+    const topUsers = await productModel.aggregate([
+      { $group: { _id: "$postedBy", totalProducts: { $sum: 1 } } },
+      { $limit: 5 },
+    ]);
 
-  const topUsers= await productModel.aggregate([
-    {$group:{_id:"$postedBy"
-    ,
-    totalProducts:{$sum:1}
-  }},{$limit:5}
-  ])
+    let result = [];
+    await Promise.all(
+      topUsers.map(async (r) => {
+        const user = await userModel
+          .findById(r._id.toString())
+          .select("firstname lastname photo")
+          .exec();
+        // console.log(user);
+        // console.log(r.count);
+        //const data={...user,count:r.count}
 
-  let result=[];
-   await Promise.all (topUsers.map( async (r)=>{
-      const user=await userModel.findById(r._id.toString()).select('firstname lastname photo').exec();
-     // console.log(user);
-      // console.log(r.count);
-      //const data={...user,count:r.count}
+        result.push({
+          _id: user._id,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          image: user.photo,
+          count: r.totalProducts,
+        });
+      })
+    );
 
-      result.push({_id:user._id,firstname:user.firstname,lastname:user.lastname,image:user.photo,count:r.totalProducts});
-
-    }))
-
-    result.sort((a,b) => (a.count > b.count) ? -1 : ((b.count > a.count) ? 1 : 0))
-   
+    result.sort((a, b) => (a.count > b.count ? -1 : b.count > a.count ? 1 : 0));
 
     res.status(200).json(result);
   } catch (err) {
@@ -209,19 +229,17 @@ exports.getUsersOverview = async (req, res) => {
   }
 };
 
-
-
 //get products approved
 
 //Get all products posting pending for approval
 exports.getApprovedProducts = async (req, res) => {
   try {
     const allPosts = await productModel
-      .find({isApproved:true})
+      .find({ isApproved: true })
       .sort({ posted: -1 })
-      .populate({ path: "postedBy",select: "-password"})
+      .populate({ path: "postedBy", select: "-password" })
       .populate("reviews")
-      .populate({ path: "reviews.reviewedBy",select: "-password"})
+      .populate({ path: "reviews.reviewedBy", select: "-password" })
       .exec();
 
     if (allPosts.length === 0) {
@@ -239,9 +257,9 @@ exports.getApprovedProducts = async (req, res) => {
 exports.getPendingProducts = async (req, res) => {
   try {
     const allPosts = await productModel
-      .find({isApproved:false})
+      .find({ isApproved: false })
       .sort({ posted: -1 })
-      .populate({ path: "postedBy",select: "-password"})
+      .populate({ path: "postedBy", select: "-password" })
       .exec();
 
     if (allPosts.length === 0) {
@@ -254,7 +272,6 @@ exports.getPendingProducts = async (req, res) => {
     return res.status(500).json({ errors: "Something went Wrong" });
   }
 };
-
 
 //Get all products
 exports.getAllProducts = async (req, res) => {
@@ -262,9 +279,9 @@ exports.getAllProducts = async (req, res) => {
     const allPosts = await productModel
       .find({})
       .sort({ posted: -1 })
-      .populate({ path: "postedBy",select: "-password"})
+      .populate({ path: "postedBy", select: "-password" })
       .populate("reviews")
-      .populate({ path: "reviews.reviewedBy",select: "-password"})
+      .populate({ path: "reviews.reviewedBy", select: "-password" })
       .exec();
 
     if (allPosts.length === 0) {
@@ -278,15 +295,14 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-
 //get details of a product pending for approval
 
-exports.getProductById= async(req,res)=>{
+exports.getProductById = async (req, res) => {
   const productId = req.params.productId;
   try {
     const product = await productModel
       .findById(productId)
-      .populate({ path: "postedBy",select: "-password"})
+      .populate({ path: "postedBy", select: "-password" })
       .exec();
 
     if (!product) {
@@ -298,62 +314,52 @@ exports.getProductById= async(req,res)=>{
     console.log(err);
     return res.status(500).json({ errors: "Something went Wrong" });
   }
-}
+};
 
 //approve a product posting
 
-exports.approveProductById= async(req,res) =>{
+exports.approveProductById = async (req, res) => {
+  const filter = { _id: req.params.productId };
+  const update = { isApproved: true };
 
-  const filter={_id: req.params.productId}
-  const update={isApproved: true}
-
-  try{
+  try {
     let updatedProduct = await productModel.findOneAndUpdate(filter, update, {
-      new: true
+      new: true,
     });
 
-    if(updatedProduct.isApproved===true){
+    if (updatedProduct.isApproved === true) {
       return res.status(200).json("The product has been approved for listing");
     }
     return res.status(500).json({ errors: "Something went Wrong" });
-  }
-  catch(err){
+  } catch (err) {
     console.log(err);
     return res.status(500).json({ errors: "Something went Wrong" });
   }
-}
-
+};
 
 //delete product by id
 
-exports.deleteProductById=async(req,res)=>{
-   const productId=req.params.productId;
+exports.deleteProductById = async (req, res) => {
+  const productId = req.params.productId;
 
-   try{
+  try {
+    const product = await productModel.findByIdAndDelete(productId);
 
-    const product=await productModel.findByIdAndDelete(productId);
-
-    if(product){
+    if (product) {
       return res.status(200).json("The product has been removed");
-    }
-    else{
+    } else {
       return res.status(500).json({ errors: "Something went Wrong" });
     }
-
-
-   }catch(err){
+  } catch (err) {
     return res.status(500).json({ errors: "Something went Wrong" });
-   }
-}
-
-
-
+  }
+};
 
 /* ********Users Related********** */
 
-//Get specific user's products list 
+//Get specific user's products list
 
-exports.getAllUserProducts=async(req,res)=>{
+exports.getAllUserProducts = async (req, res) => {
   const userId = req.params.userId;
 
   try {
@@ -361,7 +367,7 @@ exports.getAllUserProducts=async(req,res)=>{
       .find({ postedBy: userId })
       .sort({ posted: -1 })
       .populate({ path: "postedBy", select: "-password" })
-      .populate('reviews')
+      .populate("reviews")
       .exec();
 
     if (allPosts.length === 0) {
@@ -373,4 +379,26 @@ exports.getAllUserProducts=async(req,res)=>{
     console.log(err);
     return res.status(500).json({ errors: "Something went Wrong" });
   }
-}
+};
+
+
+// set featured true/false
+exports.setFeatured = async (req, res) => {
+  
+  const productId = req.params.productId;
+
+  try {
+    const product = await productModel.findById(productId);
+
+    if (product.isFeatured) {
+      await product.updateOne({ isFeatured:false});
+      res.status(200).json("The product removed from featured list");
+    } else {
+      await product.updateOne({ isFeatured:true });
+      res.status(200).json("The product is set to featured");
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: "Something went Wrong" });
+  }
+};

@@ -77,6 +77,10 @@ router.get('/product/:productId',verifyAdmin,adminController.getProductById)
 //@access private
 router.put('/product/:productId',verifyAdmin,adminController.approveProductById)
 
+//@route POST api/admin/product/featured/:productId
+//@desc UPDATE featured status
+//@access private
+router.post('/product/featured/:productId',verifyAdmin,adminController.setFeatured)
 
 //@route DELETE api/admin/product/:productId
 //@desc Dlete a product 

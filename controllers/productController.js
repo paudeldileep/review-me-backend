@@ -15,13 +15,14 @@ exports.addNewProduct = async (req, res) => {
   });
 
   try {
-    await newProduct.save();
+   await newProduct.save();
+
   } catch (err) {
     console.log(err);
     return res.status(500).json({ errors: "Internal Server Error" });
   }
 
-  return res.status(201).json("Product posted successfully");
+  return res.status(201).json("Product posted and will be published after approval!");
 };
 
 //Get all approved products posting 
