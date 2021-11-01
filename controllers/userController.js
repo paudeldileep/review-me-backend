@@ -41,7 +41,7 @@ exports.userRegister=async(req,res)=>{
     try{
         const existingUser=await userModel.findOne({email})
         if(existingUser){
-            return res.status(409).json({errors:'User already registered with given email'})
+            return res.status(409).json({errors:[{msg:'User already registered with given email'}]})
         }
 
         const newUser= new userModel(req.body);
@@ -66,7 +66,7 @@ exports.userRegister=async(req,res)=>{
 
     }catch(err){
         console.log(`register error: ${err.message}`);
-        return res.status(500).json({errors:'Internal Server Error'})
+        return res.status(500).json({errors:[{msg:'Internal Server Error'}]})
     }
 }
 
@@ -103,10 +103,10 @@ exports.userLogin=async(req,res)=>{
 
     }
 
-    return res.status(400).json({errors:'Invalid Login Credentials'})
+    return res.status(400).json({errors:[{msg:'Invalid Login Credentials'}]})
     }catch(err){
         console.log(`login error: ${err}`)
-        return res.status(500).json({errors:'Something went wrong!'})
+        return res.status(500).json({errors:[{msg:'Something went wrong!'}]})
     }
 
 }

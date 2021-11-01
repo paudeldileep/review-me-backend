@@ -97,6 +97,13 @@ router.delete('/product/:productId',verifyAdmin,adminController.deleteProductByI
 router.get('/users',verifyAdmin,userController.getAllUsers)
 
 
+
+//@route DELETE api/admin/users
+//@desc DELETE a user by id
+//@access private
+router.delete('/user/:userId',verifyAdmin,adminController.deleteUserById)
+
+
 //@route GET api/admin/user/all_pr/:userId
 //@desc GET all products of a user
 //@access private

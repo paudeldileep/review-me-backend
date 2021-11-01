@@ -355,6 +355,26 @@ exports.deleteProductById = async (req, res) => {
   }
 };
 
+// set featured true/false
+exports.setFeatured = async (req, res) => {
+  const productId = req.params.productId;
+
+  try {
+    const product = await productModel.findById(productId);
+
+    if (product.isFeatured) {
+      await product.updateOne({ isFeatured: false });
+      res.status(200).json("The product removed from featured list");
+    } else {
+      await product.updateOne({ isFeatured: true });
+      res.status(200).json("The product is set to featured");
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: "Something went Wrong" });
+  }
+};
+
 /* ********Users Related********** */
 
 //Get specific user's products list
@@ -381,24 +401,24 @@ exports.getAllUserProducts = async (req, res) => {
   }
 };
 
+//delete user by id   :  also delete all product associated with that user
 
-// set featured true/false
-exports.setFeatured = async (req, res) => {
-  
-  const productId = req.params.productId;
+exports.deleteUserById = async (req, res) => {
+  const userId = req.params.userId;
 
   try {
-    const product = await productModel.findById(productId);
+    const user = await userModel.findByIdAndDelete(userId);
 
-    if (product.isFeatured) {
-      await product.updateOne({ isFeatured:false});
-      res.status(200).json("The product removed from featured list");
+    if (user) {
+      const product = await productModel.deleteMany({ postedBy: userId });
+
+      if (product)
+        return res.status(200).json("User and their products removed");
+      else return res.status(500).json({ errors: "Something went Wrong" });
     } else {
-      await product.updateOne({ isFeatured:true });
-      res.status(200).json("The product is set to featured");
+      return res.status(500).json({ errors: "Something went Wrong" });
     }
   } catch (err) {
-    console.log(err);
     return res.status(500).json({ errors: "Something went Wrong" });
   }
 };
