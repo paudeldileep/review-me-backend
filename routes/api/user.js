@@ -2,7 +2,9 @@ const express=require('express');
 const router=express.Router();
 const validation= require('../../middlewares/validation')
 const userController=require('../../controllers/userController');
+const adminController=require('../../controllers/adminController');
 const verifyUser = require('../../middlewares/verifyUser');
+const upload= require('../../middlewares/multer_userImage')
 
 //const userController=
 //const validation=
@@ -20,11 +22,15 @@ router.post('/register',validation.userRegister_validation,userController.userRe
 router.post('/login',validation.userLogin_validation,userController.userLogin)
 
 
-//@route GET api/user/all
-//@desc get all users list
+//@route POST api/user
+//@desc update user image
 //@access private
 
-router.get('/all',verifyUser,userController.getAllUsers)
+//todo: controller function
+router.put('/:userId',verifyUser,upload.single('userImage'),userController.updateUserImage)
+
+
+
 
 //@route GET api/user/profile/:userId
 //@desc get a users profile
@@ -32,6 +38,19 @@ router.get('/all',verifyUser,userController.getAllUsers)
 
 router.get('/profile/:userId',verifyUser,userController.getUserProfile)
 
+
+
+//@route GET api/user/all
+//@desc get all users list
+//@access private
+
+router.get('/all',verifyUser,userController.getAllUsers)
+
+//@route GET api/user/top_users
+//@desc get 10 most products posted users
+//@access private
+
+router.get('/top_users',verifyUser,adminController.getUsersOverview)
 
 
 

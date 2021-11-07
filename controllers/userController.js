@@ -111,6 +111,47 @@ exports.userLogin=async(req,res)=>{
 
 }
 
+//user image update
+
+exports.updateUserImage = async (req, res) => {
+    const { id } = req.user;
+    
+    const userId = req.params.userId;
+    
+  
+    const url = req.protocol + "://" + req.get("host");
+  
+  
+    let updatedUser = {
+      updated:Date.now()
+    };
+  
+    if (req.file) {
+      updatedUser.photo =
+        url + "/uploads/userImages/" + req.file.filename;
+    }
+  
+    try {
+      //console.log(product.postedBy.toString())
+      if (id==userId) {
+       
+        const user = await userModel.findByIdAndUpdate(userId, { $set: updatedUser })
+        if (user) {
+          return res.status(200).json("User Image updated");
+        }
+        else{
+            return res.status(500).json({ errors: "Something went Wrong" });
+        }
+        }
+       else {
+        return res.status(400).json({ errors: "You can only edit your image" });
+      }
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ errors: "Something went Wrong" });
+    }
+  };
+
 //get all users
 
 exports.getAllUsers=async(req,res)=>{

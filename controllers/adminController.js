@@ -191,43 +191,7 @@ exports.getTopProducts = async (req, res) => {
   }
 };
 
-//users (5) with number of products posted
 
-exports.getUsersOverview = async (req, res) => {
-  try {
-    const topUsers = await productModel.aggregate([
-      { $group: { _id: "$postedBy", totalProducts: { $sum: 1 } } },
-      { $limit: 5 },
-    ]);
-
-    let result = [];
-    await Promise.all(
-      topUsers.map(async (r) => {
-        const user = await userModel
-          .findById(r._id.toString())
-          .select("firstname lastname photo")
-          .exec();
-        // console.log(user);
-        // console.log(r.count);
-        //const data={...user,count:r.count}
-
-        result.push({
-          _id: user._id,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          image: user.photo,
-          count: r.totalProducts,
-        });
-      })
-    );
-
-    result.sort((a, b) => (a.count > b.count ? -1 : b.count > a.count ? 1 : 0));
-
-    res.status(200).json(result);
-  } catch (err) {
-    console.log(err);
-  }
-};
 
 //get products approved
 
@@ -420,5 +384,43 @@ exports.deleteUserById = async (req, res) => {
     }
   } catch (err) {
     return res.status(500).json({ errors: "Something went Wrong" });
+  }
+};
+
+//users (5) with number of products posted
+
+exports.getUsersOverview = async (req, res) => {
+  try {
+    const topUsers = await productModel.aggregate([
+      { $group: { _id: "$postedBy", totalProducts: { $sum: 1 } } },
+      { $limit: 10 },
+    ]);
+
+    let result = [];
+    await Promise.all(
+      topUsers.map(async (r) => {
+        const user = await userModel
+          .findById(r._id.toString())
+          .select("firstname lastname photo")
+          .exec();
+        // console.log(user);
+        // console.log(r.count);
+        //const data={...user,count:r.count}
+
+        result.push({
+          _id: user._id,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          photo: user.photo,
+          count: r.totalProducts,
+        });
+      })
+    );
+
+    result.sort((a, b) => (a.count > b.count ? -1 : b.count > a.count ? 1 : 0));
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
   }
 };

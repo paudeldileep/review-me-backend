@@ -20,6 +20,12 @@ router.post('/new',verifyUser,validation.newProduct_validation,upload.single('pr
 
 router.get('/all',productController.getAllPosts)
 
+//@route GET api/product/featured/all
+//@desc Get all available featured product postings
+//@access public
+
+router.get('/featured/all',productController.getFeaturedProducts)
+
 //@route GET api/product/own
 //@desc Get all available product postings of current user
 //@access private

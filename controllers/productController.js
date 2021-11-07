@@ -65,12 +65,33 @@ exports.getAllPendingPosts = async (req, res) => {
   }
 };
 
+//Get all featured products posting 
+exports.getFeaturedProducts = async (req, res) => {
+  try {
+    const featuredProducts = await productModel
+      .find({isApproved:true,isFeatured:true})
+      .sort({ posted: -1 })
+      .populate({ path: "postedBy", select: "firstname lastname _id" })
+      .exec();
+
+    if (featuredProducts.length === 0) {
+      return res.status(400).json({ errors: "No Featured Products Found" });
+    }
+
+    return res.status(200).send(featuredProducts);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: "Something went Wrong" });
+  }
+};
+
+
 //Get specific user products posting
 exports.getOwnPosts = async (req, res) => {
   const { id } = req.user;
   try {
     const ownPosts = await productModel
-      .find({ postedBy: id })
+      .find({ postedBy: id, isApproved:true })
       .sort({ posted: -1 })
       .populate({ path: "postedBy", select: "firstname _id" })
       .exec();
@@ -92,7 +113,7 @@ exports.getPostsByUserId = async (req, res) => {
 
   try {
     const allPosts = await productModel
-      .find({ postedBy: userId })
+      .find({ postedBy: userId ,isApproved:true})
       .sort({ posted: -1 })
       .populate({ path: "postedBy", select: "firstname _id" })
       .exec();
@@ -108,7 +129,7 @@ exports.getPostsByUserId = async (req, res) => {
   }
 };
 
-//Get specific user products posting
+//Get specific product by id posting
 exports.getSinglePost = async (req, res) => {
   const productId = req.params.productId;
   try {
